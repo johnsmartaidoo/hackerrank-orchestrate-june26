@@ -1,0 +1,8 @@
+code/
+├── main.py
+├── claim_processor.py
+├── image_analyzer.py
+├── evaluation.py          (optional, for local validation)
+├── utils.py
+├── requirements.txt
+└── config.py              (API keys, model name, paths)
