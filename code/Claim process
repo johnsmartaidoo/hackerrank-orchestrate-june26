@@ -1,0 +1,48 @@
+from image_analyzer import analyze_images
+from utils import append_log
+import os
+
+def process_claim(row):
+    claim_id = row.get("claim_id")
+    conversation = row.get("conversation", "")
+    object_type = row.get("object_type", "unknown")
+    # image IDs are often comma-separated in CSV; adjust based on actual column name
+    image_ids_str = row.get("image_ids", "")
+    image_ids = [int(x.strip()) for x in image_ids_str.split(",") if x.strip()]
+    
+    # Build actual image paths (assuming images are in IMAGES_DIR and named like {id}.jpg)
+    image_paths = [f"../dataset/images/sampleHackerRank/{img_id}.jpg" for img_id in image_ids]
+    # handle if images are in subfolders – adapt as needed
+
+    # Extract actual damage claim from conversation (simple extraction or use LLM)
+    # For now, use whole conversation
+    claim_text = conversation
+
+    # Call VLM
+    analysis = analyze_images(claim_text, image_paths, object_type)
+
+    # Build output row
+    output_row = {
+        "claim_id": claim_id,
+        "decision": analysis.get("decision", "insufficient"),
+        "visible_issue_type": analysis.get("visible_issue_type", ""),
+        "relevant_object_part": analysis.get("relevant_object_part", ""),
+        "supporting_image_ids": ",".join(map(str, analysis.get("supporting_image_ids", []))),
+        "quality_risk": str(analysis.get("quality_risk", False)).lower(),
+        "mismatch_risk": str(analysis.get("mismatch_risk", False)).lower(),
+        "authenticity_risk": str(analysis.get("authenticity_risk", False)).lower(),
+        "user_history_risk": str(analysis.get("user_history_risk", False)).lower(),
+        "severity": analysis.get("severity", "medium"),
+        "justification": analysis.get("justification", "")
+    }
+
+    # Log the interaction (for chat transcript)
+    log_entry = {
+        "claim_id": claim_id,
+        "input_conversation": conversation,
+        "image_paths": image_paths,
+        "analysis": analysis
+    }
+    append_log(log_entry)
+
+    return output_row
