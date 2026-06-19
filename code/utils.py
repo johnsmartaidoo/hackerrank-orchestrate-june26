@@ -1,0 +1,30 @@
+import csv
+import json
+import base64
+
+def read_claims(csv_path):
+    claims = []
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            claims.append(row)
+    return claims
+
+def encode_image(image_path):
+    with open(image_path, "rb") as f:
+        return base64.b64encode(f.read()).decode('utf-8')
+
+def save_output(rows, out_path):
+    fieldnames = [
+        "claim_id", "decision", "visible_issue_type", "relevant_object_part",
+        "supporting_image_ids", "quality_risk", "mismatch_risk",
+        "authenticity_risk", "user_history_risk", "severity", "justification"
+    ]
+    with open(out_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+def append_log(entry, log_path):
+    with open(log_path, 'a', encoding='utf-8') as f:
+        f.write(json.dumps(entry) + "\n")
